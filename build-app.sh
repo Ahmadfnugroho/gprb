@@ -1,4 +1,5 @@
 # 1. Persiapkan direktori cache
+php --version
 mkdir -p bootstrap/cache
 chmod -R 775 bootstrap/cache
 
