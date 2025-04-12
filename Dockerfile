@@ -32,5 +32,18 @@ RUN a2enmod rewrite
 # Set working directory
 WORKDIR /var/www/html
 
-# Jalankan Composer install (opsional jika tidak pakai volume)
-# RUN composer install --no-dev --optimize-autoloader
+# Copy project Laravel ke dalam container
+COPY . /var/www/html
+
+# Set permission
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+# Aktifkan mod_rewrite
+RUN a2enmod rewrite
+
+# Ganti DocumentRoot Apache ke folder public Laravel
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
+
+# Tambahkan index.php ke DirectoryIndex jika belum
+RUN echo '<Directory /var/www/html/public>\n\tOptions Indexes FollowSymLinks\n\tAllowOverride All\n\tRequire all granted\n</Directory>' >> /etc/apache2/apache2.conf
