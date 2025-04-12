@@ -1,55 +1,36 @@
-# Gunakan image PHP 8.3 dengan Apache
-FROM php:8.3-apache
+# Define the base image
+FROM teguh02/laravel-filament:latest
 
-# Install dependensi sistem dan ekstensi PHP
-RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    zip \
-    libzip-dev \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    curl \
-    && docker-php-ext-install pdo pdo_mysql zip gd
+# Set user to root
+USER root
 
-# Install Composer
-COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
+# Change the working directory
+WORKDIR /var/www
 
-# Set working directory ke root Laravel
-WORKDIR /var/www/html
+# Remove the all files in the /var/www/html directory
+RUN rm -rf /var/www/html/*
 
-# Salin source code Laravel
-COPY . .
+# Copy laravel public directory to the /var/www/html directory
+COPY ./public /var/www/html
 
-# Atur permission
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
+# Copy the project files to the /var/www directory
+COPY . /var/www
 
-# Aktifkan mod_rewrite Apache
-RUN a2enmod rewrite
+# Install the project dependencies
+RUN composer install 
+RUN npm install
 
-# Ganti DocumentRoot ke public Laravel
-RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
+# Build the vite
+RUN npm run build
 
-# Konfigurasi directory agar .htaccess Laravel bisa dijalankan
-RUN echo '<Directory /var/www/html/public>\n\
-    Options Indexes FollowSymLinks\n\
-    AllowOverride All\n\
-    Require all granted\n\
-    </Directory>' >> /etc/apache2/apache2.conf
+# Change the directory permission
+RUN chmod -R 777 /var/www
 
-# Opsional: atur ServerName untuk hilangkan warning
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+# If you want to change the timezone of the container to UTC
+# RUN sed -i 's/;date.timezone =/date.timezone = UTC/g' /etc/php/8.3/fpm/php.ini
+# RUN sed -i 's/;date.timezone =/date.timezone = UTC/g' /etc/php/8.3/cli/php.ini
 
-# Expose port 80
-EXPOSE 80
-
-# Salin entrypoint.sh ke container
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-
-# Beri permission untuk dieksekusi
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-# Gunakan entrypoint
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# If you want to display the error message
+RUN sed -i 's/display_errors = Off/display_errors = On/g' /etc/php/8.3/fpm/php.ini
+RUN sed -i 's/display_errors = Off/display_errors = On/g' /etc/php/8.3/cli/php.ini
+RUN sed -i 's/error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT/error_reporting = E_ALL/g' /etc/php/8.3/fpm/php.ini
