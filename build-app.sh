@@ -6,6 +6,8 @@ echo "Starting build script..."
 # Print out PHP and Composer version for debugging
 php -v
 composer -v
+composer update
+
 
 # Install dependencies
 composer install --optimize-autoloader --no-dev
