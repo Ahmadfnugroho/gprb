@@ -1,23 +1,31 @@
+# Laravel & PHP
+/vendor
+/storage/*.key
+/storage/pail
 /.phpunit.cache
-/node_modules
+.phpunit.result.cache
+.env
+.env.*
+.auth.json
+
+# Laravel build outputs
 /public/build
 /public/hot
 /public/storage
-/storage/*.key
-/storage/pail
-/vendor
-.env
-.env.backup
-.env.production
+
+# IDE & editor configs
+/.idea
+/.vscode
+/.fleet
+/.zed
+/.nova
 .phpactor.json
-.phpunit.result.cache
-Homestead.json
-Homestead.yaml
+
+# Node & front-end tooling
+/node_modules
 npm-debug.log
 yarn-error.log
-/auth.json
-/.fleet
-/.idea
-/.nova
-/.vscode
-/.zed
+
+# Homestead
+Homestead.json
+Homestead.yaml
