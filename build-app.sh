@@ -1,33 +1,33 @@
-#!/bin/bash
-set -e
-
-# Skip cache clearing if cache table doesn't exist
+# 1. Persiapkan direktori cache
 mkdir -p bootstrap/cache
 chmod -R 775 bootstrap/cache
+
+# 2. Install Livewire dan dependensi Composer
 composer require livewire/livewire
-# Install dependencies
 composer install --optimize-autoloader --no-dev
 
-# Build assets
-if [ -f "package.json" ]; then
-    npm install && npm run build
-fi
+# 3. Install dan build asset frontend jika ada package.json
+if exist package.json (
+  npm install
+  npm run build
+)
 
-# Hanya bersihkan cache lokal, tanpa akses database
+# 4. Generate cache Laravel (dengan fallback jika error)
+php artisan config:cache || echo "config:cache failed"
+php artisan route:cache || echo "route:cache failed"
+php artisan view:cache || echo "view:cache failed"
 
-php artisan config:cache || true
-php artisan route:cache || true
-php artisan view:cache || true
-php artisan vendor:publish --force --tag=livewire:assets
+# 5. Publish assets Livewire dan Filament
 php artisan vendor:publish --force --tag=livewire:assets
 php artisan filament:assets
 php artisan filament:cache-components
 
+# 6. Clear cache Laravel (untuk memastikan clean state)
 php artisan cache:clear
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 php artisan optimize:clear
 
-# Hanya dump autoload
+# 7. Dump autoload
 composer dump-autoload
