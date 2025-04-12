@@ -1,31 +1,36 @@
-# Use a base image with PHP 8.4
-FROM php:8.4-cli
+# Gunakan image PHP 8.3 dengan Apache
+FROM php:8.3-apache
 
-# Install necessary extensions
+# Install dependensi sistem dan ekstensi PHP
 RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    zip \
     git \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd
+    unzip \
+    zip \
+    libzip-dev \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    curl \
+    && docker-php-ext-install pdo pdo_mysql zip gd
+
+# Install Composer
+COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
+
+# Salin source code Laravel ke direktori kerja container
+COPY . /var/www/html
+
+# Atur permission
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+# Aktifkan mod_rewrite Apache
+RUN a2enmod rewrite
+
+# Salin konfigurasi Apache kustom (jika ada)
+# COPY ./apache/vhost.conf /etc/apache2/sites-available/000-default.conf
 
 # Set working directory
-WORKDIR /app
+WORKDIR /var/www/html
 
-# Copy the project files into the container
-COPY . /app
-
-# Install dependencies
-RUN curl -sS https://getcomposer.org/installer | php
-RUN php composer.phar install --no-dev --optimize-autoloader
-
-# Install npm dependencies and build assets
-RUN npm install && npm run build
-
-# Expose necessary port
-EXPOSE 80
-
-# Set the entrypoint
-CMD ["php", "artisan", "serve", "--host=0.0.0.0"]
+# Jalankan Composer install (opsional jika tidak pakai volume)
+# RUN composer install --no-dev --optimize-autoloader
