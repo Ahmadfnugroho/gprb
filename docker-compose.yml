@@ -10,7 +10,7 @@ services:
         networks:
             - laravel-filament
         ports:
-            - 7271:80
+            - 7272:80
         restart: unless-stopped
         extra_hosts:
             - "host.docker.internal:host-gateway"
@@ -19,7 +19,7 @@ services:
             interval: 30s
             timeout: 10s
             retries: 5
-            env_file: .env
+            # env_file: .env
 
 networks:
     laravel-filament:
