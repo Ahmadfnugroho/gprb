@@ -2,6 +2,9 @@
 
 namespace App\Providers\Filament;
 
+use App\Models\Role;
+use App\Models\User;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -11,13 +14,14 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Rmsramos\Activitylog\ActivitylogPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -25,24 +29,28 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->sidebarCollapsibleOnDesktop()
             ->id('admin')
+            ->registration()
+            ->passwordReset()
+            ->emailVerification()
+            ->profile()
             ->path('admin')
             ->login()
+            ->font('Poppins')
+            ->defaultThemeMode(ThemeMode::Dark)
             ->colors([
-                'primary' => '#06b6d4', // cyan-500
+                'primary' => Color::Amber,
             ])
-            ->font('Arial')
-
+            ->brandName('Global Photo Rental')
+            ->favicon(asset('images/LOGO GPR.png'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
-            ])
+            ->databaseNotifications()
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -57,17 +65,39 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->registration()
-            ->passwordReset()
-            ->emailVerification()
-            ->profile()
-            ->defaultThemeMode(ThemeMode::Dark)
-            ->brandName('Global Photo Rental')
-            ->favicon(asset('images/LOGO GPR.png'))
-            ->databaseNotifications()
-            ->globalSearch(true)
-            ->globalSearchKeyBindings(['command+f', 'ctrl+f'])
-            ->globalSearchDebounce('750ms')
-        ;
+            ->plugins([
+                FilamentShieldPlugin::make()
+
+                    ->gridColumns([
+                        'default' => 1,
+                        'sm' => 2,
+                        'lg' => 2
+                    ])
+                    ->sectionColumnSpan(1)
+                    ->checkboxListColumns([
+                        'default' => 1,
+                        'sm' => 2,
+                        'lg' => 3,
+                    ])
+                    ->resourceCheckboxListColumns([
+                        'default' => 1,
+                        'sm' => 2,
+                    ]),
+
+                ActivitylogPlugin::make()
+                    ->navigationGroup('Activity Log')
+                    ->authorize(
+                        fn(User $user) => $user->hasRole('super_admin'),
+                    )
+            ])
+            ->globalSearch(true) // Aktifkan global search
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k']) // Shortcut keyboard
+            ->globalSearchDebounce('750ms'); // Debounce untuk mengurangi request
+
+    }
+
+    public function boot(): void
+    {
+        //
     }
 }

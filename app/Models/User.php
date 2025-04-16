@@ -2,18 +2,25 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
+use BezhanSalleh\FilamentShield\Traits\HasPanelShield;
 use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail
+
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasApiTokens, Notifiable, HasRoles, LogsActivity;
 
     /**
      * The attributes that are mass assignable.
@@ -38,6 +45,26 @@ class User extends Authenticatable implements MustVerifyEmail
         'status',
     ];
 
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly([
+                'name',
+                'email',
+                'address',
+                'job',
+                'office_address',
+                'instagram_username',
+                'facebook_username',
+                'emergency_contact_name',
+                'emergency_contact_number',
+                'gender',
+                'source_info',
+                'status',
+            ]);
+    }
+
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -47,6 +74,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'remember_token',
     ];
+
+
 
     /**
      * Get the attributes that should be cast.
@@ -59,5 +88,29 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function canAccessPanel(\Filament\Panel $panel): bool
+    {
+        return true; // Atur logika akses panel sesuai kebutuhan
+    }
+
+
+
+    public function userPhotos(): HasMany
+    {
+        return $this->hasMany(UserPhoto::class, 'user_id', 'id');
+    }
+
+
+    public function userPhoneNumbers(): HasMany
+    {
+        return $this->hasMany(UserPhoneNumber::class, 'user_id', 'id');
+    }
+
+
+    public function Transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'user_id', 'id');
     }
 }
