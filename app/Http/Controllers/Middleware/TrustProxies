@@ -1,0 +1,3 @@
+protected $proxies = '*'; // Atau alamat IP Railway jika diketahui
+
+protected $headers = Request::HEADER_X_FORWARDED_ALL;

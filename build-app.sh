@@ -31,6 +31,8 @@ php artisan config:clear
 php artisan route:clear
 php artisan view:clear
 php artisan optimize:clear
+php artisan livewire:publish --assets
+
 
 # Dump autoload
 composer dump-autoload
