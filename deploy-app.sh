@@ -27,5 +27,6 @@ php artisan livewire:publish --assets
 php artisan filament:assets
 php artisan filament:cache-components
 
+
 # Optional: dump autoload
 composer dump-autoload
