@@ -1,8 +1,16 @@
 #!/bin/bash
 set -e
 
-# Set permission
-chmod -R 775 storage bootstrap/cache
+# Start required services
+service php8.3-fpm start
+service nginx start
+
+# Set proper permissions
+chown -R www-data:www-data /var/www
+find /var/www -type d -exec chmod 755 {} \;
+find /var/www -type f -exec chmod 644 {} \;
+chmod -R 775 /var/www/storage
+chmod -R 775 /var/www/bootstrap/cache
 
 # Clear caches
 php artisan config:clear
@@ -21,12 +29,14 @@ php artisan view:cache
 # Link storage
 php artisan storage:link || true
 
-# Publish Livewire and Filament assets
+# Publish assets
 php artisan livewire:publish --config
 php artisan livewire:publish --assets
 php artisan filament:assets
 php artisan filament:cache-components
 
-
-# Optional: dump autoload
+# Dump autoload
 composer dump-autoload
+
+# Keep the container running
+tail -f /dev/null
