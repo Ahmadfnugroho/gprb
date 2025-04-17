@@ -11,11 +11,11 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
-    // ->withMiddleware(function (Middleware $middleware) {
-    //     $middleware->trustProxies(at: [
-    //         'HEADER_X_FORWARDED_ALL' => true,
-    //     ]);
-    // })
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(at: [
+            'HEADER_X_FORWARDED_ALL' => true,
+        ]);
+    })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
